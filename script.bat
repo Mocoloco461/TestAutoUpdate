@@ -1,28 +1,26 @@
 @echo off
-setlocal enabledelayedexpansion
+REM Step 0: Define script's current and parent directory paths
+set "script_path=%~f0"
+set "current_directory=%~dp0"
+set "parent_directory=%~dp0.."
 
-:: Step 0: Get the current script's path and parent directory
-set "script=%~f0"
-set "currentDir=%~dp0"
-set "parentDir=%currentDir%.."
+REM Step 1: Rename this script by appending a "1" to its name
+set "script_name=%~nx0"
+set "new_name=%script_name%1"
+move "%script_path%" "%new_name%"
 
-:: Step 1: Rename this script by appending a "1" to its name
-set "newName=%~n0_1%~x0"
-copy "%script%" "%parentDir%\%newName%"
-cd /d "%parentDir%"
+REM Moving the script to the parent directory temporarily
+move "%new_name%" "%parent_directory%"
+cd /d "%parent_directory%"
 
-:: Step 2 & 3 are combined due to the limitation of deleting the script's original directory while it is running
-:: The script moves itself up one directory, deletes the target directory, and then clones the git repository
-:: WARNING: The next command will delete the script's original directory entirely
-rd /s /q "%currentDir%"
+REM Step 2: Delete the original folder containing the script
+REM WARNING: This will delete all contents of the script's original directory
+rmdir /s /q "%current_directory%"
 
-:: Step 3: Clone the GitHub repository (Git must be installed and in the system's PATH)
+REM Step 3: Clone the GitHub repository into the current location (which is the parent of the original script's folder)
+REM Note: Git must be installed and accessible from CMD
 git clone https://github.com/Mocoloco461/TestAutoUpdate.git
 
-:: Step 4: Delete this script file after execution
-:: Using ping as a delay to allow the batch file to finish execution before deletion
-ping localhost -n 3 > nul
-del "%parentDir%\%newName%"
-
-endlocal
+REM Step 4: Delete this script file
+del /f /q "%new_name%"
 
