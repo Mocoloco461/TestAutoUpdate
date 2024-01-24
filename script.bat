@@ -1,18 +1,18 @@
 @echo off
-REM Ensure the script is run from the application's directory or set the directory manually
-cd /d "%~dp0"
+setlocal enabledelayedexpansion
 
-REM Define the application directory and the repository URL
-set "app_directory=."
-set "repository_url=https://github.com/Mocoloco461/TestAutoUpdate.git"
+:: Step 1: Rename itself to a temporary script to bypass locking
+set "tempScript=%~n0_temp%~x0"
+copy "%~f0" "%tempScript%" >nul
 
-REM Step 1: Delete the application's current version
-REM WARNING: This deletes all files in the application directory!
-for /d %%x in (%app_directory%\*) do rmdir /s /q "%%x"
-del /q %app_directory%\*.*
+:: Create a temporary script for renaming and self-deletion
+(
+echo @echo off
+echo rename "%~nx0" "%~n01%~x0"
+echo del /q /f "%~dp0*.*" ^& rmdir /s /q "%~dp0*.*" ^& git clone https://github.com/Mocoloco461/TestAutoUpdate/ "%~dp0" ^& del "%~n01%~x0" ^& exit
+) > "%tempScript%"
 
-REM Step 2: Clone the latest version of the application
-git clone %repository_url% %app_directory%
-
-echo Update completed.
+:: Execute the temporary script
+start /b "" cmd /c "%tempScript%"
+exit
 
